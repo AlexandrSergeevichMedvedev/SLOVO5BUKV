@@ -3,7 +3,7 @@ import requests
 import zipfile
 import os
 
-# --- Скачивание файла с Google Drive ---
+# Скачиваем файл с Google Drive
 def download_file_from_google_drive(file_id, destination):
     URL = "https://drive.google.com/uc?export=download"
     session = requests.Session()
@@ -14,14 +14,12 @@ def download_file_from_google_drive(file_id, destination):
         response = session.get(URL, params=params, stream=True)
     save_response_content(response, destination)
 
-# --- Получение подтверждающего токена для скачивания ---
 def get_confirm_token(response):
     for key, value in response.cookies.items():
         if key.startswith('download_warning'):
             return value
     return None
 
-# --- Сохранение скачанного файла ---
 def save_response_content(response, destination):
     CHUNK_SIZE = 32768
     with open(destination, "wb") as f:
@@ -29,7 +27,7 @@ def save_response_content(response, destination):
             if chunk:
                 f.write(chunk)
 
-# --- Загрузка словаря (скачиваем с Google Drive) ---
+# Загружаем словарь из архива
 @st.cache_data
 def load_dictionary():
     if not os.path.exists('russian.dic.zip'):
@@ -41,13 +39,14 @@ def load_dictionary():
         words = [line.strip().lower() for line in f if len(line.strip()) == 5]
     return set(words)
 
-# --- CSS стили для интерфейса ---
+# CSS стили
 st.markdown("""
     <style>
-    .title-container {
+    .title-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 30px;
     }
     .title-box {
         display: flex;
@@ -69,6 +68,7 @@ st.markdown("""
         padding: 5px 10px;
         font-weight: bold;
         border: 1px solid black;
+        cursor: pointer;
     }
     .input-grid {
         display: flex;
@@ -76,74 +76,72 @@ st.markdown("""
         margin-bottom: 20px;
         flex-wrap: nowrap;
     }
-    .input-square input {
+    .stTextInput > div > input {
         width: 50px !important;
         height: 50px !important;
         text-align: center;
         font-size: 24px;
     }
-    .below-section {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-        margin-left: 10px;
+    .section-title {
+        margin-top: 20px;
+        margin-bottom: 10px;
+        font-weight: bold;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Заголовок и кнопка сброса ---
-col1, col2 = st.columns([5,1])
-with col1:
-    st.markdown("""
-    <div class="title-box">
-        <div class="title-letter">5</div>
-        <div class="title-letter">Б</div>
-        <div class="title-letter">У</div>
-        <div class="title-letter">К</div>
-        <div class="title-letter">В</div>
+# Верхняя строка (5БУКВ и кнопка СБРОС)
+st.markdown("""
+    <div class="title-row">
+        <div class="title-box">
+            <div class="title-letter">5</div>
+            <div class="title-letter">Б</div>
+            <div class="title-letter">У</div>
+            <div class="title-letter">К</div>
+            <div class="title-letter">В</div>
+        </div>
+        <form action="" method="get">
+            <button class="reset-button" type="submit">СБРОС</button>
+        </form>
     </div>
-    """, unsafe_allow_html=True)
-with col2:
-    if st.button("СБРОС", key="reset", help="Сбросить все поля"):
-        st.experimental_rerun()
+""", unsafe_allow_html=True)
 
-# --- Поля для фиксированных позиций ---
+# Поля для фиксированных позиций (5 квадратов)
 st.markdown('<div class="input-grid">', unsafe_allow_html=True)
 fixed_positions = []
 for i in range(5):
-    fixed_positions.append(st.text_input("", max_chars=1, key=f"fixed_{i}", label_visibility='collapsed', placeholder="", help="", disabled=False, class_name="input-square"))
+    fixed_positions.append(st.text_input("", max_chars=1, key=f"fixed_{i}", label_visibility='collapsed'))
 st.markdown('</div>', unsafe_allow_html=True)
 
-# --- Поля "буквы есть в слове, но не в этой позиции" ---
-st.write("Буквы есть в слове, но не в этой позиции:")
+# Поля "буквы есть в слове, но не в этой позиции" (5 ячеек)
+st.markdown('<div class="section-title">Буквы есть в слове, но не в этой позиции:</div>', unsafe_allow_html=True)
 st.markdown('<div class="input-grid">', unsafe_allow_html=True)
 not_in_positions = []
 for i in range(5):
-    not_in_positions.append(st.text_input("", key=f"not_in_pos_{i}", placeholder="Б", max_chars=10))
+    not_in_positions.append(st.text_input("", key=f"not_in_pos_{i}", placeholder="Б,Р"))
 st.markdown('</div>', unsafe_allow_html=True)
 
-# --- Поле для исключённых букв ---
+# Поле для исключённых букв
 excluded_letters = st.text_input("Исключённые буквы", key="excluded_letters", placeholder="Введите буквы")
 
-# --- Загрузка словаря ---
+# Загружаем словарь
 dictionary = load_dictionary()
 
-# --- Фильтрация слов по условиям ---
+# Фильтрация слов по условиям
 results = []
 for word in dictionary:
     word_ok = True
-    # Проверяем фиксированные позиции
+    # Фиксированные позиции
     for idx, letter in enumerate(fixed_positions):
         if letter and word[idx] != letter.lower():
             word_ok = False
             break
     if not word_ok:
         continue
-    # Проверяем исключённые буквы
+    # Исключённые буквы
     if any(l in excluded_letters.lower() for l in word):
         continue
-    # Проверяем обязательные буквы не в своих позициях
+    # Буквы есть в слове, но не в этой позиции
     for idx, field in enumerate(not_in_positions):
         if field:
             letters = [l.lower() for l in field.replace(" ", "").split(",") if l]
@@ -159,7 +157,7 @@ for word in dictionary:
     if word_ok:
         results.append(word)
 
-# --- Вывод результатов ---
+# Вывод найденных слов
 st.write(f"Найдено слов: {len(results)}")
 for w in results:
     st.write(w)
