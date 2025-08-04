@@ -83,8 +83,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- КНОПКА СБРОСА ---
+query_params = st.query_params
+
 if st.button("СБРОС", key="reset_button"):
-    st.experimental_rerun()
+    st.query_params.clear()
+    st.rerun()
+
 
 # --- ОБЕРТКА ДЛЯ ВСЕХ ПОЛЕЙ ВВОДА ---
 st.markdown('<div class="input-section">', unsafe_allow_html=True)
