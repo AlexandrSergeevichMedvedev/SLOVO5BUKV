@@ -63,7 +63,7 @@ st.markdown("""
         gap: 10px;
         margin-bottom: 20px;
     }
-    .input-square input {
+    .input-grid .stTextInput > div > input {
         width: 50px !important;
         height: 50px !important;
         text-align: center;
@@ -88,24 +88,23 @@ st.markdown("""
 
 # --- Логика сброса ---
 if st.session_state.get("reset_triggered"):
-    st.session_state["pos_0"] = ""
-    st.session_state["pos_1"] = ""
-    st.session_state["pos_2"] = ""
-    st.session_state["pos_3"] = ""
-    st.session_state["pos_4"] = ""
+    for i in range(5):
+        st.session_state[f"pos_{i}"] = ""
     st.session_state["excluded"] = ""
     st.session_state["included"] = ""
     st.session_state["reset_triggered"] = False
 
 if "reset" in st.query_params:
     st.session_state["reset_triggered"] = True
-    st.query_params.clear()  # очищаем URL
+    st.query_params.clear()
 
-# --- Поля для фиксированных позиций ---
+# --- Поля для фиксированных позиций (5 квадратов) ---
 st.markdown("<div class='input-grid'>", unsafe_allow_html=True)
 fixed_positions = []
-for i in range(5):
-    fixed_positions.append(st.text_input("", max_chars=1, key=f"pos_{i}", label_visibility='collapsed', placeholder="", help="", disabled=False, args=None, kwargs=None, class_name="input-square"))
+cols = st.columns(5)
+for i, col in enumerate(cols):
+    with col:
+        fixed_positions.append(st.text_input("", max_chars=1, key=f"pos_{i}", label_visibility='collapsed'))
 st.markdown("</div>", unsafe_allow_html=True)
 
 # --- Ввод включённых и исключённых букв ---
