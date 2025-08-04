@@ -24,68 +24,82 @@ dictionary = load_dictionary()
 # --- Стилизация ---
 st.markdown("""
     <style>
-    .letter-box {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        text-align: center;
-        border: 2px solid #999;
-        border-radius: 5px;
+    .header-box {
         display: inline-block;
-        margin: 5px;
-    }
-    .header-cube {
         background-color: yellow;
-        display: inline-block;
         width: 30px;
         height: 30px;
         font-size: 20px;
         text-align: center;
         line-height: 30px;
-        margin-right: 2px;
-        border-radius: 4px;
-        font-weight: bold;
-    }
-    .stButton > button {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background-color: yellow;
-        padding: 8px 16px;
+        margin-right: 5px;
         border-radius: 5px;
         font-weight: bold;
-        color: black;
+    }
+    .reset-btn {
+        display: inline-block;
+        background-color: yellow;
+        width: 60px;
+        height: 30px;
+        font-size: 14px;
+        text-align: center;
+        line-height: 30px;
+        margin-left: 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .letter-input {
+        width: 50px !important;
+        height: 50px;
+        text-align: center;
+        font-size: 24px;
+        margin-right: 5px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Заголовок ---
+# --- Шапка с 5БУКВ и СБРОС ---
 st.markdown("""
-    <div>
-        <span class="header-cube">5</span>
-        <span class="header-cube">Б</span>
-        <span class="header-cube">У</span>
-        <span class="header-cube">К</span>
-        <span class="header-cube">В</span>
+    <div style="display: flex; align-items: center;">
+        <div class="header-box">5</div>
+        <div class="header-box">Б</div>
+        <div class="header-box">У</div>
+        <div class="header-box">К</div>
+        <div class="header-box">В</div>
+        <form action="" method="post">
+            <button class="reset-btn" name="reset" type="submit">СБРОС</button>
+        </form>
     </div>
 """, unsafe_allow_html=True)
 
-# --- Кнопка сброса ---
-if st.button("Сброс"):
-    st.experimental_rerun()
+# --- Логика сброса ---
+if st.session_state.get("reset_triggered"):
+    st.session_state["pos_0"] = ""
+    st.session_state["pos_1"] = ""
+    st.session_state["pos_2"] = ""
+    st.session_state["pos_3"] = ""
+    st.session_state["pos_4"] = ""
+    st.session_state["excluded"] = ""
+    st.session_state["included"] = ""
+    st.session_state["reset_triggered"] = False
+
+if "reset" in st.experimental_get_query_params():
+    st.session_state["reset_triggered"] = True
+    st.experimental_set_query_params()  # очищаем URL
 
 # --- Поля для фиксированных позиций ---
+st.markdown("<div style='display: flex; gap: 5px; margin-top: 20px;'>", unsafe_allow_html=True)
 fixed_positions = []
-st.markdown("<div style='display: flex; gap: 5px;'>", unsafe_allow_html=True)
 for i in range(5):
-    fixed_positions.append(st.text_input("", max_chars=1, key=f"pos_{i}", label_visibility='collapsed'))
+    fixed_positions.append(st.text_input("", max_chars=1, key=f"pos_{i}", label_visibility='collapsed', placeholder="", help="", args=None, kwargs=None, disabled=False, label_visibility_opts=None, class_name="letter-input"))
 st.markdown("</div>", unsafe_allow_html=True)
 
-# --- Поля для включённых и исключённых букв ---
-excluded_input = st.text_input("Исключённые буквы (через запятую)", "")
-excluded_letters = set(x.strip() for x in excluded_input.lower().split(",") if x.strip())
+# --- Ввод включённых и исключённых букв ---
+excluded_input = st.text_input("Исключённые буквы (через запятую)", key="excluded")
+included_input = st.text_input("Буквы, которые есть в слове (позиции неизвестны)", key="included")
 
-included_input = st.text_input("Буквы, которые есть в слове (позиции неизвестны)", "")
+excluded_letters = set(x.strip() for x in excluded_input.lower().split(",") if x.strip())
 included_letters = set(x.strip() for x in included_input.lower().split(",") if x.strip())
 
 # --- Фильтрация слов ---
@@ -95,10 +109,10 @@ for word in dictionary:
         continue
     if not included_letters.issubset(set(word)):
         continue
-    if any(fp and word[i] != fp for i, fp in enumerate(fixed_positions)):
+    if any(fp and word[i] != fp.lower() for i, fp in enumerate(fixed_positions)):
         continue
     results.append(word)
 
-# --- Результаты ---
+# --- Вывод результатов ---
 st.write(f"Найдено {len(results)} слов:")
 st.dataframe(results)
