@@ -24,6 +24,13 @@ dictionary = load_dictionary()
 # --- Стилизация ---
 st.markdown("""
     <style>
+    .header-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
     .header-box {
         display: inline-block;
         background-color: yellow;
@@ -50,9 +57,15 @@ st.markdown("""
         cursor: pointer;
         border: none;
     }
-    .letter-input input {
+    .input-grid {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .input-square input {
         width: 50px !important;
-        height: 50px;
+        height: 50px !important;
         text-align: center;
         font-size: 24px;
     }
@@ -60,35 +73,42 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- Шапка с 5БУКВ и СБРОС ---
-col1, col2 = st.columns([5, 1])
-with col1:
-    st.markdown("""
-        <div>
-            <span class="header-box">5</span>
-            <span class="header-box">Б</span>
-            <span class="header-box">У</span>
-            <span class="header-box">К</span>
-            <span class="header-box">В</span>
-        </div>
-    """, unsafe_allow_html=True)
-with col2:
-    if st.button("СБРОС"):
-        st.session_state["pos_0"] = ""
-        st.session_state["pos_1"] = ""
-        st.session_state["pos_2"] = ""
-        st.session_state["pos_3"] = ""
-        st.session_state["pos_4"] = ""
-        st.session_state["excluded"] = ""
-        st.session_state["included"] = ""
+st.markdown("""
+    <div class="header-container">
+        <div class="header-box">5</div>
+        <div class="header-box">Б</div>
+        <div class="header-box">У</div>
+        <div class="header-box">К</div>
+        <div class="header-box">В</div>
+        <form action="" method="post">
+            <button class="reset-btn" name="reset" type="submit">СБРОС</button>
+        </form>
+    </div>
+""", unsafe_allow_html=True)
+
+# --- Логика сброса ---
+if st.session_state.get("reset_triggered"):
+    st.session_state["pos_0"] = ""
+    st.session_state["pos_1"] = ""
+    st.session_state["pos_2"] = ""
+    st.session_state["pos_3"] = ""
+    st.session_state["pos_4"] = ""
+    st.session_state["excluded"] = ""
+    st.session_state["included"] = ""
+    st.session_state["reset_triggered"] = False
+
+if "reset" in st.query_params:
+    st.session_state["reset_triggered"] = True
+    st.query_params.clear()  # очищаем URL
 
 # --- Поля для фиксированных позиций ---
-st.markdown("<div style='display: flex; gap: 5px; margin-top: 20px;'>", unsafe_allow_html=True)
+st.markdown("<div class='input-grid'>", unsafe_allow_html=True)
 fixed_positions = []
 for i in range(5):
-    fixed_positions.append(st.text_input("", max_chars=1, key=f"pos_{i}", label_visibility='collapsed'))
+    fixed_positions.append(st.text_input("", max_chars=1, key=f"pos_{i}", label_visibility='collapsed', placeholder="", help="", disabled=False, args=None, kwargs=None, class_name="input-square"))
 st.markdown("</div>", unsafe_allow_html=True)
 
-# --- Поля для включённых и исключённых букв ---
+# --- Ввод включённых и исключённых букв ---
 excluded_input = st.text_input("Исключённые буквы (через запятую)", key="excluded")
 included_input = st.text_input("Буквы, которые есть в слове (позиции неизвестны)", key="included")
 
