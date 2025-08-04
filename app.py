@@ -34,7 +34,8 @@ st.markdown("""
         }
         .square-container {
             display: flex;
-            gap: 10px;
+            gap: 10px;  /* Расстояние между квадратами */
+            justify-content: flex-start; /* Ставим квадраты слева */
             margin-top: 40px;
         }
         .empty-square {
@@ -65,10 +66,11 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# === 5 пустых квадратов ===
+# === 5 пустых квадратов в одну строку ===
 st.markdown('<div class="square-container">', unsafe_allow_html=True)
 
-for _ in range(5):
-    st.markdown('<div class="empty-square"></div>', unsafe_allow_html=True)
+# Пять пустых квадратов
+squares_html = ''.join(['<div class="empty-square"></div>' for _ in range(5)])
+st.markdown(squares_html, unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
