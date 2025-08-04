@@ -97,7 +97,6 @@ with col2:
             st.session_state[f"pos_{i}"] = ""
             st.session_state[f"not_pos_{i}"] = ""
         st.session_state["excluded"] = ""
-        st.session_state["included"] = ""
 
 # --- Поля фиксированных позиций (5 квадратов) ---
 st.markdown('<div class="block-label">Буквы на своих местах</div>', unsafe_allow_html=True)
@@ -109,33 +108,43 @@ for i, col in enumerate(cols):
         fixed_positions.append(st.text_input("", max_chars=1, key=f"pos_{i}", label_visibility='collapsed'))
 st.markdown("</div>", unsafe_allow_html=True)
 
-# --- Поля для буквы, которой нет в конкретной позиции ---
-st.markdown('<div class="block-label">Буквы, которых точно нет в позиции</div>', unsafe_allow_html=True)
+# --- Поля для букв, которые есть в слове, но не в этой позиции ---
+st.markdown('<div class="block-label">Буквы есть в слове, но не в этой позиции</div>', unsafe_allow_html=True)
 st.markdown("<div class='input-grid'>", unsafe_allow_html=True)
 not_in_positions = []
 cols = st.columns(5)
 for i, col in enumerate(cols):
     with col:
-        not_in_positions.append(st.text_input("", max_chars=1, key=f"not_pos_{i}", label_visibility='collapsed'))
+        not_in_positions.append(st.text_input("", key=f"not_pos_{i}", label_visibility='collapsed'))
 st.markdown("</div>", unsafe_allow_html=True)
 
-# --- Ввод включённых и исключённых букв ---
+# --- Ввод исключённых букв ---
 excluded_input = st.text_input("Исключённые буквы (через запятую)", key="excluded")
-included_input = st.text_input("Буквы, которые есть в слове (позиции неизвестны)", key="included")
-
 excluded_letters = set(x.strip() for x in excluded_input.lower().split(",") if x.strip())
-included_letters = set(x.strip() for x in included_input.lower().split(",") if x.strip())
 
-# --- Фильтрация слов ---
+# --- Логика фильтрации ---
 results = []
 for word in dictionary:
+    # Исключённые буквы
     if excluded_letters & set(word):
         continue
-    if not included_letters.issubset(set(word)):
-        continue
+    # Фиксированные позиции
     if any(fp and word[i] != fp.lower() for i, fp in enumerate(fixed_positions)):
         continue
-    if any(nip and word[i] == nip.lower() for i, nip in enumerate(not_in_positions)):
+    # Буквы, которые не могут стоять в данной позиции (но должны быть в слове)
+    skip_word = False
+    for i, field in enumerate(not_in_positions):
+        if field.strip():
+            letters = set(x.strip() for x in field.lower().split(",") if x.strip())
+            # Если буква в этой позиции — исключаем слово
+            if word[i] in letters:
+                skip_word = True
+                break
+            # Если этих букв нет в слове — исключаем слово
+            if not letters & set(word):
+                skip_word = True
+                break
+    if skip_word:
         continue
     results.append(word)
 
