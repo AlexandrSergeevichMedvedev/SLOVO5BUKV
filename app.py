@@ -34,18 +34,15 @@ st.markdown("""
         }
         .square-container {
             display: flex;
-            gap: 10px;  /* Расстояние между квадратами */
-            justify-content: flex-start; /* Ставим квадраты слева */
+            gap: 10px;
+            justify-content: flex-start;
             margin-top: 40px;
         }
-        .empty-square {
-            width: 50px;
-            height: 50px;
-            border: 2px solid #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: white;
+        .input-square input {
+            width: 50px !important;
+            height: 50px !important;
+            text-align: center;
+            font-size: 24px;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -66,11 +63,16 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# === 5 пустых квадратов в одну строку ===
+# === 5 квадратов с полями ввода ===
 st.markdown('<div class="square-container">', unsafe_allow_html=True)
 
-# Пять пустых квадратов
-squares_html = ''.join(['<div class="empty-square"></div>' for _ in range(5)])
-st.markdown(squares_html, unsafe_allow_html=True)
+# 5 интерактивных квадратов для букв
+fixed_positions = []
+for i in range(5):
+    letter = st.text_input("", max_chars=1, key=f"fixed_{i}", label_visibility='collapsed')
+    fixed_positions.append(letter.upper())
 
 st.markdown('</div>', unsafe_allow_html=True)
+
+# === Отображаем введённые буквы (для теста) ===
+st.write("Введённые буквы:", fixed_positions)
