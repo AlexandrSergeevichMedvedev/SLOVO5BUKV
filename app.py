@@ -1,6 +1,6 @@
 import streamlit as st
 
-# === CSS стили ===
+# === Стилизация ===
 st.markdown("""
     <style>
         .header-container {
@@ -32,22 +32,23 @@ st.markdown("""
             border: none;
             cursor: pointer;
         }
-        .square-container {
+        .input-grid {
             display: flex;
             gap: 10px;
-            justify-content: flex-start;
             margin-top: 40px;
         }
-        .input-square input {
-            width: 50px !important;
-            height: 50px !important;
+        .input-grid input {
+            width: 50px;
+            height: 50px;
             text-align: center;
             font-size: 24px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# === Верхняя панель: 5БУКВ и кнопка СБРОС ===
+# === Верхняя панель ===
 st.markdown("""
     <div class="header-container">
         <div class="title-box">
@@ -63,16 +64,17 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# === 5 квадратов с полями ввода ===
-st.markdown('<div class="square-container">', unsafe_allow_html=True)
+# === 5 квадратов ввода букв ===
+st.markdown('<div class="input-grid">', unsafe_allow_html=True)
 
-# 5 интерактивных квадратов для букв
 fixed_positions = []
 for i in range(5):
-    letter = st.text_input("", max_chars=1, key=f"fixed_{i}", label_visibility='collapsed')
-    fixed_positions.append(letter.upper())
+    # Прямое HTML поле ввода (обходит ограничения Streamlit)
+    fixed_positions.append(
+        st.text_input("", key=f"fixed_{i}", max_chars=1, label_visibility="collapsed")
+    )
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# === Отображаем введённые буквы (для теста) ===
+# === Показываем для теста ===
 st.write("Введённые буквы:", fixed_positions)
