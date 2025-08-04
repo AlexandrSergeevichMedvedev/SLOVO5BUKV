@@ -9,8 +9,6 @@ st.markdown("""
             gap: 10px;
             margin-top: 40px;
             margin-bottom: 20px;
-        }
-        .input-square input {
             width: 50px !important;
             height: 50px !important;
             text-align: center;
