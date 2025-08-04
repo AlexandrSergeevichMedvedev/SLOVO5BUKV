@@ -3,54 +3,29 @@ import streamlit as st
 # Стилизация CSS
 st.markdown("""
     <style>
-        .title-container {
+        .input-container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
+            justify-content: flex-start;
+            gap: 10px;
+            margin-top: 40px;
+            margin-bottom: 20px;
         }
-        .title-box {
-            display: flex;
-            gap: 5px;
-        }
-        .letter-box {
-            width: 40px;
-            height: 40px;
-            background-color: yellow;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 20px;
-            border: 1px solid black;
-        }
-        .reset-button {
-            background-color: yellow;
-            color: black;
-            padding: 10px 20px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .reset-button:hover {
-            background-color: #FFD700;
+        .input-square input {
+            width: 50px !important;
+            height: 50px !important;
+            text-align: center;
+            font-size: 24px;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# HTML для заголовка и кнопки сброса
-st.markdown("""
-    <div class="title-container">
-        <div class="title-box">
-            <div class="letter-box">5</div>
-            <div class="letter-box">Б</div>
-            <div class="letter-box">У</div>
-            <div class="letter-box">К</div>
-            <div class="letter-box">В</div>
-        </div>
-        <form action="">
-            <button class="reset-button" type="submit">СБРОС</button>
-        </form>
-    </div>
-""", unsafe_allow_html=True)
+# Контейнер для 5 ячеек ввода
+st.markdown('<div class="input-container">', unsafe_allow_html=True)
+
+# 5 квадратных полей ввода (фиксированные буквы)
+fixed_positions = []
+for i in range(5):
+    letter = st.text_input("", max_chars=1, key=f"fixed_{i}", label_visibility='collapsed')
+    fixed_positions.append(letter.upper())
+
+st.markdown('</div>', unsafe_allow_html=True)
