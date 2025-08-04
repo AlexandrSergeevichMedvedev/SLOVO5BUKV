@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import requests
 
-# Скачивание словаря с Google Drive
+# Скачивание словаря
 def download_dictionary():
     url = 'https://drive.google.com/uc?export=download&id=1TlkCaAhP-SBEKzmWMkBbW9bx4yyAaM7D'
     if not os.path.exists('russian.dic'):
@@ -29,7 +29,6 @@ st.markdown("""
         justify-content: center;
         align-items: center;
         margin-bottom: 20px;
-        flex-wrap: wrap;
     }
     .header-box {
         display: inline-block;
@@ -51,7 +50,7 @@ st.markdown("""
         font-size: 14px;
         text-align: center;
         line-height: 30px;
-        margin-left: 20px;
+        margin-left: auto;
         border-radius: 5px;
         font-weight: bold;
         cursor: pointer;
@@ -62,49 +61,62 @@ st.markdown("""
         justify-content: center;
         gap: 10px;
         margin-bottom: 20px;
+        flex-wrap: nowrap;
     }
-    .input-grid .stTextInput > div > input {
+    .input-square input {
         width: 50px !important;
         height: 50px !important;
         text-align: center;
         font-size: 24px;
     }
+    .block-label {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # --- Шапка с 5БУКВ и СБРОС ---
-st.markdown("""
-    <div class="header-container">
-        <div class="header-box">5</div>
-        <div class="header-box">Б</div>
-        <div class="header-box">У</div>
-        <div class="header-box">К</div>
-        <div class="header-box">В</div>
-        <form action="" method="post">
-            <button class="reset-btn" name="reset" type="submit">СБРОС</button>
-        </form>
-    </div>
-""", unsafe_allow_html=True)
+col1, col2 = st.columns([1, 1])
+with col1:
+    st.markdown("""
+        <div class="header-container">
+            <div class="header-box">5</div>
+            <div class="header-box">Б</div>
+            <div class="header-box">У</div>
+            <div class="header-box">К</div>
+            <div class="header-box">В</div>
+        </div>
+    """, unsafe_allow_html=True)
 
-# --- Логика сброса ---
-if st.session_state.get("reset_triggered"):
-    for i in range(5):
-        st.session_state[f"pos_{i}"] = ""
-    st.session_state["excluded"] = ""
-    st.session_state["included"] = ""
-    st.session_state["reset_triggered"] = False
+with col2:
+    if st.button("СБРОС"):
+        for i in range(5):
+            st.session_state[f"pos_{i}"] = ""
+            st.session_state[f"not_pos_{i}"] = ""
+        st.session_state["excluded"] = ""
+        st.session_state["included"] = ""
 
-if "reset" in st.query_params:
-    st.session_state["reset_triggered"] = True
-    st.query_params.clear()
-
-# --- Поля для фиксированных позиций (5 квадратов) ---
+# --- Поля фиксированных позиций (5 квадратов) ---
+st.markdown('<div class="block-label">Буквы на своих местах</div>', unsafe_allow_html=True)
 st.markdown("<div class='input-grid'>", unsafe_allow_html=True)
 fixed_positions = []
 cols = st.columns(5)
 for i, col in enumerate(cols):
     with col:
         fixed_positions.append(st.text_input("", max_chars=1, key=f"pos_{i}", label_visibility='collapsed'))
+st.markdown("</div>", unsafe_allow_html=True)
+
+# --- Поля для буквы, которой нет в конкретной позиции ---
+st.markdown('<div class="block-label">Буквы, которых точно нет в позиции</div>', unsafe_allow_html=True)
+st.markdown("<div class='input-grid'>", unsafe_allow_html=True)
+not_in_positions = []
+cols = st.columns(5)
+for i, col in enumerate(cols):
+    with col:
+        not_in_positions.append(st.text_input("", max_chars=1, key=f"not_pos_{i}", label_visibility='collapsed'))
 st.markdown("</div>", unsafe_allow_html=True)
 
 # --- Ввод включённых и исключённых букв ---
@@ -122,6 +134,8 @@ for word in dictionary:
     if not included_letters.issubset(set(word)):
         continue
     if any(fp and word[i] != fp.lower() for i, fp in enumerate(fixed_positions)):
+        continue
+    if any(nip and word[i] == nip.lower() for i, nip in enumerate(not_in_positions)):
         continue
     results.append(word)
 
