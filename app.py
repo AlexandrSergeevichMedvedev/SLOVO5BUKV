@@ -1,4 +1,3 @@
-
 import streamlit as st
 import os
 import requests
@@ -22,21 +21,74 @@ def load_dictionary():
 
 dictionary = load_dictionary()
 
-# Интерфейс
-st.title("Поиск слов по условиям (5 букв)")
+# --- Стилизация ---
+st.markdown("""
+    <style>
+    .letter-box {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        text-align: center;
+        border: 2px solid #999;
+        border-radius: 5px;
+        display: inline-block;
+        margin: 5px;
+    }
+    .header-cube {
+        background-color: yellow;
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        font-size: 20px;
+        text-align: center;
+        line-height: 30px;
+        margin-right: 2px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    .stButton > button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: yellow;
+        padding: 8px 16px;
+        border-radius: 5px;
+        font-weight: bold;
+        color: black;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-cols = st.columns(5)
-fixed_positions = [''] * 5
+# --- Заголовок ---
+st.markdown("""
+    <div>
+        <span class="header-cube">5</span>
+        <span class="header-cube">Б</span>
+        <span class="header-cube">У</span>
+        <span class="header-cube">К</span>
+        <span class="header-cube">В</span>
+    </div>
+""", unsafe_allow_html=True)
+
+# --- Кнопка сброса ---
+if st.button("Сброс"):
+    st.experimental_rerun()
+
+# --- Поля для фиксированных позиций ---
+fixed_positions = []
+st.markdown("<div style='display: flex; gap: 5px;'>", unsafe_allow_html=True)
 for i in range(5):
-    fixed_positions[i] = cols[i].text_input(f"Позиция {i+1}", max_chars=1).lower()
+    fixed_positions.append(st.text_input("", max_chars=1, key=f"pos_{i}", label_visibility='collapsed'))
+st.markdown("</div>", unsafe_allow_html=True)
 
+# --- Поля для включённых и исключённых букв ---
 excluded_input = st.text_input("Исключённые буквы (через запятую)", "")
 excluded_letters = set(x.strip() for x in excluded_input.lower().split(",") if x.strip())
 
 included_input = st.text_input("Буквы, которые есть в слове (позиции неизвестны)", "")
 included_letters = set(x.strip() for x in included_input.lower().split(",") if x.strip())
 
-# Фильтрация слов
+# --- Фильтрация слов ---
 results = []
 for word in dictionary:
     if excluded_letters & set(word):
@@ -47,6 +99,6 @@ for word in dictionary:
         continue
     results.append(word)
 
-# Результаты
+# --- Результаты ---
 st.write(f"Найдено {len(results)} слов:")
 st.dataframe(results)
