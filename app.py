@@ -29,18 +29,22 @@ st.markdown("""
             padding: 5px 10px;
             border-radius: 5px;
             font-weight: bold;
+            border: none;
             cursor: pointer;
         }
-        .input-container {
+        .square-container {
             display: flex;
             gap: 10px;
             margin-top: 40px;
         }
-        .input-square input {
-            width: 50px !important;
-            height: 50px !important;
-            text-align: center;
-            font-size: 24px;
+        .empty-square {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -55,18 +59,16 @@ st.markdown("""
             <div class="title-letter">К</div>
             <div class="title-letter">В</div>
         </div>
-        <form action="" method="post">
+        <form action="" method="get">
             <button class="reset-button" type="submit">СБРОС</button>
         </form>
     </div>
 """, unsafe_allow_html=True)
 
-# === Поля ввода фиксированных букв ===
-st.markdown('<div class="input-container">', unsafe_allow_html=True)
+# === 5 пустых квадратов ===
+st.markdown('<div class="square-container">', unsafe_allow_html=True)
 
-fixed_positions = []
-for i in range(5):
-    letter = st.text_input("", max_chars=1, key=f"fixed_{i}", label_visibility='collapsed')
-    fixed_positions.append(letter.upper())
+for _ in range(5):
+    st.markdown('<div class="empty-square"></div>', unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
