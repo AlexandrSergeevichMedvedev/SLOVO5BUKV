@@ -1,171 +1,145 @@
 import streamlit as st
-import zipfile
-import os
 
-# --- СТИЛИ CSS ---
+# ================= CSS стили ====================
 st.markdown("""
     <style>
-    .input-section {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        margin-left: 20px;
-    }
-
-    .input-grid {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .input-square input {
-        width: 50px !important;
-        height: 50px !important;
-        text-align: center;
-        font-size: 24px;
-        background-color: white !important;
-        border: 2px solid #000000;
-        border-radius: 5px;
-    }
-
-    .not-in-position-grid {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .excluded-letters {
-        margin-bottom: 20px;
-    }
-
-    .reset-button {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        background-color: yellow;
-        color: black;
-        padding: 10px 20px;
-        font-weight: bold;
-        border-radius: 5px;
-    }
-
-    .title {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        margin-bottom: 30px;
-    }
-
-    .title-letter {
-        width: 30px;
-        height: 30px;
-        background-color: yellow;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: bold;
-        font-size: 18px;
-        border-radius: 3px;
-    }
-
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-title {
+            display: flex;
+            gap: 5px;
+        }
+        .header-title div {
+            width: 30px;
+            height: 30px;
+            background-color: yellow;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            font-size: 18px;
+            border-radius: 5px;
+        }
+        .reset-button button {
+            background-color: yellow !important;
+            color: black !important;
+            font-weight: bold;
+            border-radius: 5px;
+            height: 30px;
+            width: 60px;
+        }
+        .input-grid {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            margin-top: 10px;
+            flex-wrap: nowrap;
+        }
+        input[id^="pos_"], input[id^="notinpos_"], input[id="excluded_letters"] {
+            width: 50px !important;
+            height: 50px !important;
+            text-align: center;
+            font-size: 24px;
+            background-color: white !important;
+            border: 2px solid #000000;
+            border-radius: 5px;
+        }
     </style>
 """, unsafe_allow_html=True)
 
-# --- ЗАГОЛОВОК "5БУКВ" ---
-st.markdown("""
-    <div class="title">
-        <div class="title-letter">5</div>
-        <div class="title-letter">Б</div>
-        <div class="title-letter">У</div>
-        <div class="title-letter">К</div>
-        <div class="title-letter">В</div>
-    </div>
-""", unsafe_allow_html=True)
+# ============= Шапка: "5БУКВ" и Кнопка "СБРОС" ============
+col1, col2 = st.columns([8, 2])
+with col1:
+    st.markdown("""
+        <div class="header-title">
+            <div>5</div>
+            <div>Б</div>
+            <div>У</div>
+            <div>К</div>
+            <div>В</div>
+        </div>
+    """, unsafe_allow_html=True)
+with col2:
+    query_params = st.query_params
+    if st.button("СБРОС", key="reset_button"):
+        st.query_params.clear()
+        st.rerun()
 
-# --- КНОПКА СБРОСА ---
-query_params = st.query_params
-
-if st.button("СБРОС", key="reset_button"):
-    st.query_params.clear()
-    st.rerun()
-
-
-# --- ОБЕРТКА ДЛЯ ВСЕХ ПОЛЕЙ ВВОДА ---
-st.markdown('<div class="input-section">', unsafe_allow_html=True)
-
-# --- ФИКСИРОВАННЫЕ ПОЗИЦИИ (5 КВАДРАТОВ) ---
+# ============= Поля ввода фиксированных позиций =============
+st.write("Фиксированные позиции (если известны):")
 fixed_positions = []
-st.markdown('<div class="input-grid">', unsafe_allow_html=True)
-for i in range(5):
-    fixed_positions.append(
-        st.text_input("", max_chars=1, key=f"pos_{i}", label_visibility='collapsed', class_name="input-square")
-    )
-st.markdown('</div>', unsafe_allow_html=True)
+with st.container():
+    cols = st.columns(5)
+    for i in range(5):
+        with cols[i]:
+            fixed_positions.append(st.text_input("", max_chars=1, key=f"pos_{i}", label_visibility='collapsed'))
 
-# --- "Буквы есть в слове, но не в этой позиции" (5 ЯЧЕЕК В СТРОКУ) ---
+# ============= Поля "Буквы есть в слове, но не в этой позиции" =============
+st.write("Буквы есть в слове, но не в этой позиции (по позициям):")
 not_in_positions = []
-st.markdown('<div class="not-in-position-grid">', unsafe_allow_html=True)
-for i in range(5):
-    not_in_positions.append(
-        st.text_input("", key=f"not_in_pos_{i}", max_chars=20, label_visibility='collapsed', placeholder="Буквы")
-    )
-st.markdown('</div>', unsafe_allow_html=True)
+with st.container():
+    cols = st.columns(5)
+    for i in range(5):
+        with cols[i]:
+            not_in_positions.append(st.text_input("", max_chars=20, key=f"notinpos_{i}", label_visibility='collapsed'))
 
-# --- Исключённые буквы ---
-excluded_letters = st.text_input("Исключённые буквы", key="excluded_letters", placeholder="Например: А, Б, В")
+# ============= Поле исключённых букв =============
+excluded_letters = st.text_input("Исключённые буквы (через запятую):", key="excluded_letters")
 
-st.markdown('</div>', unsafe_allow_html=True)  # Закрытие input-section
+# ============= Словарь слов (пример) =============
+dictionary = ["мышка", "штраф", "медик", "пирог", "пилав", "плакат", "плюха", "фигура", "фирма", "пирса"]
 
-# --- ЗАГРУЗКА СЛОВАРЯ ИЗ АРХИВА ---
-@st.cache_data
-def load_dictionary():
-    if not os.path.exists("russian.dic"):
-        with zipfile.ZipFile("russian.dic.zip", 'r') as zip_ref:
-            zip_ref.extractall(".")
-    with open("russian.dic", "r", encoding="windows-1251") as f:
-        words = [line.strip().upper() for line in f if len(line.strip()) == 5]
-    return words
+# ============= Алгоритм фильтрации =============
+excluded_letters = set([l.strip().upper() for l in excluded_letters.split(",") if l.strip()])
 
-# Подгружаем словарь
-dictionary = load_dictionary()
+# Формируем список подходящих слов
+results = []
+for word in dictionary:
+    if len(word) != 5:
+        continue
+    w = word.upper()
 
-# --- ЛОГИКА ФИЛЬТРАЦИИ СЛОВ ---
-def filter_words():
-    result = []
-    excluded = set(excluded_letters.upper().replace(" ", "").split(","))
-    mandatory_letters = set()
+    # Проверка фиксированных позиций
+    is_valid = True
+    for i, fixed in enumerate(fixed_positions):
+        if fixed and w[i] != fixed.upper():
+            is_valid = False
+            break
+    if not is_valid:
+        continue
 
-    # Собираем все обязательные буквы из not_in_positions
-    for letters in not_in_positions:
-        for letter in letters.upper().replace(" ", "").split(","):
-            if letter:
-                mandatory_letters.add(letter)
+    # Проверка исключённых букв
+    if any(l in w for l in excluded_letters):
+        continue
 
-    for word in dictionary:
-        if any(letter in excluded for letter in word):
-            continue  # Пропускаем слова с исключёнными буквами
-
-        # Проверяем фиксированные позиции
-        mismatch = False
-        for i in range(5):
-            if fixed_positions[i] and word[i] != fixed_positions[i].upper():
-                mismatch = True
+    # Проверка "буквы есть, но не в этой позиции"
+    for i, not_in in enumerate(not_in_positions):
+        letters = [l.strip().upper() for l in not_in.split(",") if l.strip()]
+        for letter in letters:
+            if letter not in w or w[i] == letter:
+                is_valid = False
                 break
-            if fixed_positions[i] == "" and any(word[i] == l.upper() for l in not_in_positions[i]):
-                mismatch = True
-                break
-        if mismatch:
-            continue
+        if not is_valid:
+            break
 
-        # Проверяем наличие обязательных букв (в любом месте слова)
-        if not mandatory_letters.issubset(set(word)):
-            continue
+    # Проверка наличия всех букв из "буквы есть, но не в этой позиции"
+    all_letters = set()
+    for not_in in not_in_positions:
+        letters = [l.strip().upper() for l in not_in.split(",") if l.strip()]
+        all_letters.update(letters)
+    if not all(letter in w for letter in all_letters):
+        continue
 
-        result.append(word)
-    return result
+    # Добавляем слово в результаты
+    results.append(word)
 
-# --- ВЫВОДИМ РЕЗУЛЬТАТ ---
-filtered_words = filter_words()
-st.write(f"Найдено слов: {len(filtered_words)}")
-for word in filtered_words:
-    st.write(word)
+# ============= Вывод результатов =============
+if results:
+    st.write("Возможные слова:")
+    for res in results:
+        st.write(res)
+else:
+    st.write("Нет подходящих слов.")
+
