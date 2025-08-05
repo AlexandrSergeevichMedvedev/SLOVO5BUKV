@@ -39,33 +39,34 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
         flex-wrap: nowrap;
     }
     .header-box {
         display: inline-block;
         background-color: yellow;
-        width: 30px;
-        height: 30px;
-        font-size: 20px;
+        width: 24px;
+        height: 24px;
+        font-size: 16px;
         text-align: center;
-        line-height: 30px;
-        margin-right: 5px;
-        border-radius: 5px;
+        line-height: 24px;
+        margin-right: 3px;
+        border-radius: 3px;
         font-weight: bold;
     }
     .input-grid {
         display: flex;
         justify-content: center;
-        gap: 5px;
-        margin-bottom: 20px;
+        gap: 3px;
+        margin-bottom: 10px;
         flex-wrap: nowrap;
     }
     .input-square input {
         width: 100% !important;
         aspect-ratio: 1 / 1 !important;
         text-align: center;
-        font-size: 24px;
+        font-size: 18px;
+        padding: 2px;
     }
     .input-column {
         flex: 1 1 18%;
@@ -75,22 +76,13 @@ st.markdown("""
         background-color: yellow;
         color: black;
         font-weight: bold;
-        border-radius: 5px;
-        width: 70px;
-        height: 30px;
+        border-radius: 3px;
+        width: 50px;
+        height: 24px;
+        font-size: 14px;
     }
-    @media (max-width: 600px) {
-        .header-box {
-            width: 24px;
-            height: 24px;
-            font-size: 16px;
-            line-height: 24px;
-        }
-        .stButton>button {
-            width: 50px;
-            height: 24px;
-            font-size: 12px;
-        }
+    .stTextInput>div>div>input {
+        padding: 2px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -105,10 +97,11 @@ st.markdown("""
             <div class="header-box">К</div>
             <div class="header-box">В</div>
         </div>
+        <form action="" method="get">
+            <button type="submit">СБРОС</button>
+        </form>
     </div>
 """, unsafe_allow_html=True)
-
-st.button("СБРОС", on_click=reset_fields)
 
 # --- Поля фиксированных позиций ---
 st.markdown('<div class="input-grid">', unsafe_allow_html=True)
@@ -155,4 +148,4 @@ for word in dictionary:
 
 # --- Вывод ---
 st.write(f"Найдено {len(results)} слов:")
-st.dataframe(results)
+st.dataframe(results, use_container_width=True)
