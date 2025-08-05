@@ -1,9 +1,8 @@
-
 import streamlit as st
 import os
 import requests
 
-# Скачивание словаря
+# --- Скачивание словаря ---
 def download_dictionary():
     url = 'https://drive.google.com/uc?export=download&id=1TlkCaAhP-SBEKzmWMkBbW9bx4yyAaM7D'
     if not os.path.exists('russian.dic'):
@@ -14,7 +13,7 @@ def download_dictionary():
 
 download_dictionary()
 
-# Загрузка словаря
+# --- Загрузка словаря ---
 @st.cache_data
 def load_dictionary():
     with open('russian.dic', 'r', encoding='utf-8') as f:
@@ -22,8 +21,20 @@ def load_dictionary():
 
 dictionary = load_dictionary()
 
-# --- Стилизация (адаптивная) ---
-st.markdown("""<style>
+# --- Сброс ---
+if 'reset' not in st.session_state:
+    st.session_state.reset = False
+
+def reset_fields():
+    st.session_state.reset = True
+    for i in range(5):
+        st.session_state[f"pos_{i}"] = ""
+        st.session_state[f"not_pos_{i}"] = ""
+    st.session_state["excluded"] = ""
+
+# --- Стили ---
+st.markdown("""
+<style>
     .header-container {
         display: flex;
         justify-content: space-between;
@@ -43,18 +54,6 @@ st.markdown("""<style>
         border-radius: 5px;
         font-weight: bold;
     }
-    .reset-btn {
-        background-color: yellow;
-        width: 60px;
-        height: 30px;
-        font-size: 14px;
-        text-align: center;
-        line-height: 30px;
-        border-radius: 5px;
-        font-weight: bold;
-        cursor: pointer;
-        border: none;
-    }
     .input-grid {
         display: flex;
         justify-content: center;
@@ -72,6 +71,14 @@ st.markdown("""<style>
         flex: 1 1 18%;
         max-width: 18%;
     }
+    .stButton>button {
+        background-color: yellow;
+        color: black;
+        font-weight: bold;
+        border-radius: 5px;
+        width: 70px;
+        height: 30px;
+    }
     @media (max-width: 600px) {
         .header-box {
             width: 24px;
@@ -79,20 +86,16 @@ st.markdown("""<style>
             font-size: 16px;
             line-height: 24px;
         }
-        .reset-btn {
+        .stButton>button {
             width: 50px;
             height: 24px;
             font-size: 12px;
-            line-height: 24px;
-        }
-        .input-column {
-            flex: 1 1 18%;
-            max-width: 18%;
         }
     }
-</style>""", unsafe_allow_html=True)
+</style>
+""", unsafe_allow_html=True)
 
-# --- Шапка с 5БУКВ и СБРОС ---
+# --- Заголовок ---
 st.markdown("""
     <div class="header-container">
         <div style="display:flex;">
@@ -102,13 +105,12 @@ st.markdown("""
             <div class="header-box">К</div>
             <div class="header-box">В</div>
         </div>
-        <form action="" method="get">
-            <button class="reset-btn" type="submit">СБРОС</button>
-        </form>
     </div>
 """, unsafe_allow_html=True)
 
-# --- Поля фиксированных позиций (5 квадратов) ---
+st.button("СБРОС", on_click=reset_fields)
+
+# --- Поля фиксированных позиций ---
 st.markdown('<div class="input-grid">', unsafe_allow_html=True)
 fixed_positions = []
 for i in range(5):
@@ -117,7 +119,7 @@ for i in range(5):
     )
 st.markdown('</div>', unsafe_allow_html=True)
 
-# --- Поля для букв, которые есть в слове, но не в этой позиции ---
+# --- Поля "буквы есть, но не в этой позиции" ---
 st.markdown('<div class="input-grid">', unsafe_allow_html=True)
 not_in_positions = []
 for i in range(5):
@@ -126,11 +128,11 @@ for i in range(5):
     )
 st.markdown('</div>', unsafe_allow_html=True)
 
-# --- Ввод исключённых букв ---
+# --- Исключённые буквы ---
 excluded_input = st.text_input("Исключённые буквы (через запятую)", key="excluded")
 excluded_letters = set(x.strip() for x in excluded_input.lower().split(",") if x.strip())
 
-# --- Логика фильтрации ---
+# --- Логика поиска ---
 results = []
 for word in dictionary:
     if excluded_letters & set(word):
@@ -151,6 +153,6 @@ for word in dictionary:
         continue
     results.append(word)
 
-# --- Вывод результатов ---
+# --- Вывод ---
 st.write(f"Найдено {len(results)} слов:")
 st.dataframe(results)
